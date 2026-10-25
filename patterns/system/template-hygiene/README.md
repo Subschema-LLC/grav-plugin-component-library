@@ -36,6 +36,7 @@ bin/plugin component-library lint user/themes/mytheme
 | JSON inside &lt;script&gt; tags was printed with plain json_encode, so a "&lt;/script&gt;" in any value could end the tag. | json_encode with JSON_HEX_TAG (any flags value with bit 1 set, such as 15 or 321). (lint rule json-without-hex-tag) | Gantry schema particle |
 | Templates used Twig 1/2 syntax removed in Twig 3, such as {% filter %}, {% spaceless %} or "for ... if", and only worked with twig3_compat on. | {% apply %}, the spaceless filter, and an {% if %} inside the loop; test with twig3_compat: false. (lint rule twig1-syntax) | Grav 2 migration |
 | Structured-data image URLs were built with page.media[file].url(true), expecting an absolute URL; media url()'s argument means "reset", so the JSON-LD carried relative paths. | url(page.media[file].url, true) adds the scheme and host. (lint rule media-url-true) | community-guide theme, Schema.org partial (found while testing this library on Grav 2.2.11) |
+| Adding current_page ('is-active is-selected') to a Bulma .navbar-item.has-dropdown wrapper kept that section's flyout menu permanently open on the section page and all its child pages, so the dropdown could not be closed. | Put is-selected on .navbar-item.has-dropdown and is-active on the inner .navbar-link. (lint rule dropdown-always-open) | Bulma theme navigation partial |
 
 ## Verify
 

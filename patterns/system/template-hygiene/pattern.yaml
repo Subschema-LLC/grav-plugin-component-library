@@ -47,6 +47,9 @@ solves:
   - problem: Structured-data image URLs were built with page.media[file].url(true), expecting an absolute URL; media url()'s argument means "reset", so the JSON-LD carried relative paths.
     fix: url(page.media[file].url, true) adds the scheme and host. (lint rule media-url-true)
     seen_in: community-guide theme, Schema.org partial (found while testing this library on Grav 2.2.11)
+  - problem: Adding current_page ('is-active is-selected') to a Bulma .navbar-item.has-dropdown wrapper kept that section's flyout menu permanently open on the section page and all its child pages, so the dropdown could not be closed.
+    fix: Put is-selected on .navbar-item.has-dropdown and is-active on the inner .navbar-link. (lint rule dropdown-always-open)
+    seen_in: Bulma theme navigation partial
 verify:
   - bin/plugin component-library lint <theme folder> reports no errors.
   - The theme renders with system.strict_mode.twig3_compat false.
