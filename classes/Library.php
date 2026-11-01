@@ -440,6 +440,28 @@ class Library
             }
         }
 
+        // dropdown-always-open: Bulma's .navbar-item.has-dropdown.is-active forces .navbar-dropdown open permanently
+        $activeVars = [];
+        if (preg_match_all('/\{%-?\s*set\s+(\w+)\s*=[^%]*\bis-active\b[^%]*%\}/', $code, $mm)) {
+            $activeVars = array_unique($mm[1]);
+        }
+        if (preg_match_all('/<[a-z0-9]+\b[^>]*class="[^"]*\bhas-dropdown\b[^"]*"[^>]*>/i', $code, $mm, PREG_OFFSET_CAPTURE)) {
+            foreach ($mm[0] as [$tag, $pos]) {
+                $hasActive = (bool) preg_match('/\bis-active\b/', $tag);
+                if (!$hasActive) {
+                    foreach ($activeVars as $var) {
+                        if (preg_match('/\{\{[^}]*\b' . preg_quote($var, '/') . '\b[^}]*\}\}/', $tag)) {
+                            $hasActive = true;
+                            break;
+                        }
+                    }
+                }
+                if ($hasActive) {
+                    $add($pos, 'dropdown-always-open', 'warning', "is-active on a Bulma .has-dropdown element forces its .navbar-dropdown flyout to stay open permanently on active pages; put is-active on the inner .navbar-link instead.");
+                }
+            }
+        }
+
         usort($issues, fn ($a, $b) => $a['line'] <=> $b['line']);
 
         return $issues;
