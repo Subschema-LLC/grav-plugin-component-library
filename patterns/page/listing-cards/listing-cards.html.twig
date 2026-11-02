@@ -1,0 +1,263 @@
+{#
+    Pattern: page/listing-cards
+
+    {% include 'patterns/page/listing-cards/listing-cards.html.twig' with {
+        cards: page.header.listing_cards,               -- the default
+        settings: page.header.listing,                  -- the default
+        children: page.children.published.nonModular,   -- the child pages Child Pages can add (the default)
+        child_pages: 'fallback',                        -- used when the page leaves Child Pages on its default ('none' if not passed)
+        button_text: 'Learn more',                      -- used when neither the card nor the page sets one
+        page_image_keys: ['card_image'],                -- header keys on a linked page that hold its card photo
+        image_template: 'partials/card-image.html.twig',  -- optional; receives medium, alt, fit, sizes, card
+        sizes: '(min-width: 64em) 33vw, 100vw',         -- for the srcset; derived from the columns when not passed
+        heading_level: 2,                               -- the heading above the cards; card titles sit one level below it
+        id: 'listing',                                  -- heading id prefix and the ItemList's #fragment
+        schema: true,                                   -- output the ItemList JSON-LD
+        classes: { button: 'button is-small' }
+    } %}
+
+    Cards come first, in the editor's order; child pages follow when Child
+    Pages says so. A card linked to a page fills its empty fields from that
+    page (title, card photo, summary, address) and is hidden once that page is
+    unpublished. The same list is printed as a Schema.org ItemList whose @id is
+    the page URL plus '#listing'; pass main_entity: '#listing' to
+    theme/schema-graph on listing templates so the page points at it.
+
+    Slots for `classes`: root, heading, intro, grid, item, card, media, body,
+    title, summary, description, button.
+#}
+{% import 'patterns/_shared/macros.html.twig' as cl %}
+{% set c = { root: '', heading: '', intro: '', grid: '', item: '', card: '', media: '', body: '', title: '', summary: '', description: '', button: '' }|merge(classes|default({})) %}
+{% set settings = settings|default(page.header.listing|default({})) %}
+{% set settings = settings is iterable ? settings : {} %}
+{% set cards = cards|default(page.header.listing_cards|default([])) %}
+{% set cards = cards is iterable ? cards : [] %}
+{% set children = children|default(page.children.published.nonModular) %}
+{% set h = heading_level|default(2) %}
+{% set list_id = id|default('listing') %}
+{% set image_keys = page_image_keys|default(['card_image']) %}
+
+{% set columns = settings.columns|default(3) %}
+{% set columns = columns in [2, 3, 4, '2', '3', '4'] ? columns : 3 %}
+{% set fit = settings.image_fit|default('contain') == 'cover' ? 'cover' : 'contain' %}
+{% set mode = settings.child_pages|default(child_pages|default('none')) %}
+{% set mode = mode in ['fallback', 'append', 'none'] ? mode : 'none' %}
+{% set default_cta = settings.button_text|default(button_text|default('')) %}
+{% set size_hints = {
+    2: '(min-width: 40em) 50vw, 100vw',
+    3: '(min-width: 64em) 33vw, (min-width: 40em) 50vw, 100vw',
+    4: '(min-width: 64em) 25vw, (min-width: 40em) 50vw, 100vw'
+} %}
+{% set sizes = sizes|default(size_hints[columns]) %}
+
+{# 1. What to show: the cards, then child pages. Every card's page counts as
+   linked, shown or not, so hiding a card never brings its page back as a
+   child. #}
+{% set sources = [] %}
+{% set linked = [] %}
+{% for card in cards %}
+    {% if card is iterable %}
+        {% set target = card.page|default('') is not empty ? grav.pages.find(card.page) : null %}
+        {% if target %}{% set linked = linked|merge([target.route]) %}{% endif %}
+        {% set enabled = card.enabled is not defined or card.enabled is null or card.enabled in [1, '1', true] %}
+        {% set live = target and target.published and target.routable %}
+        {% if enabled and (card.page|default('') is empty or live) %}
+            {% set sources = sources|merge([{ card: card, target: target }]) %}
+        {% endif %}
+    {% endif %}
+{% endfor %}
+{% if mode == 'append' or (mode == 'fallback' and cards|length == 0) %}
+    {% for child in children %}
+        {% if child.published and child.routable and child.route not in linked and child.route != page.route %}
+            {% set sources = sources|merge([{ card: {}, target: child }]) %}
+        {% endif %}
+    {% endfor %}
+{% endif %}
+
+{# 2. Resolve each card once, for both the markup and the JSON-LD. #}
+{% set page_url = page.canonical(true)|default(page.url(true)) %}
+{% set site_url = (base_url_absolute|default(page_url|split('/')|slice(0, 3)|join('/')))|trim('/', 'right') %}
+{% set items = [] %}
+{% for s in sources %}
+    {% set card = s.card %}
+    {% set target = s.target %}
+
+    {% set title = card.title|default(target ? target.title : '') %}
+
+    {# `summary` in a page header is usually Grav's summary settings (a map),
+       so it is used only when it is text. #}
+    {% set summary = card.short_description|default('') %}
+    {% if summary is empty and target %}
+        {% set hs = target.header.summary|default('') %}
+        {% set summary = hs is iterable ? '' : hs %}
+        {% if summary is empty %}
+            {% set md = target.header.metadata.description|default('') %}
+            {% set summary = md is iterable ? '' : md %}
+        {% endif %}
+        {% if summary is empty %}
+            {% set summary = target.summary(200)|striptags|trim %}
+        {% endif %}
+    {% endif %}
+
+    {# Image: the card's own (this page's media), else the linked page's card
+       photo key, else its first image. A path under user/images also works. #}
+    {% set src = card.image|default('') %}
+    {% set src_page = page %}
+    {% if src is empty and target %}
+        {% for key in image_keys %}
+            {% set v = attribute(target.header, key)|default('') %}
+            {% if src is empty and v is not iterable and v is not empty %}
+                {% set src = v %}
+                {% set src_page = target %}
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+    {% set medium = null %}
+    {% if src is not empty %}
+        {% set clean = src|replace({ 'image://': '', 'user://images/': '', 'user/images/': '' })|trim('/') %}
+        {% set medium = src_page.media[clean] ?? null %}
+        {% if medium is null and '/' in clean %}
+            {% set parts = clean|split('/') %}
+            {% set lib = media_directory('user://images/' ~ parts|slice(0, parts|length - 1)|join('/')) %}
+            {% set medium = lib ? (lib[parts|last] ?? null) : null %}
+        {% endif %}
+    {% elseif target %}
+        {% set medium = target.media.images|first ?: null %}
+    {% endif %}
+    {# An image beside a heading that names it is decorative unless the editor describes it. #}
+    {% set alt = card.image_alt is defined and card.image_alt is not null ? card.image_alt : '' %}
+
+    {% set new_tab = card.cta_new_tab is defined and card.cta_new_tab in [1, '1', true] %}
+    {% set own_link = card.cta_link|default('')|trim %}
+    {% set url = target ? target.url : own_link %}
+    {% set url_tab = not target and new_tab %}
+    {% set cta_url = own_link ?: (target ? target.url : '') %}
+    {% set cta_tab = own_link ? new_tab : false %}
+    {% set cta_text = card.cta_text|default(default_cta) %}
+
+    {% if target %}
+        {% set abs_url = target.url(true) %}
+    {% elseif own_link starts with 'https://' or own_link starts with 'http://' %}
+        {% set abs_url = own_link %}
+    {% elseif own_link starts with '/' and not (own_link starts with '//') %}
+        {% set abs_url = site_url ~ own_link %}
+    {% else %}
+        {% set abs_url = '' %}
+    {% endif %}
+
+    {% if title|trim is not empty %}
+        {% set items = items|merge([{
+            title: title,
+            summary: summary,
+            description: card.description|default(''),
+            medium: medium,
+            abs_image: medium and medium.type|default('') == 'image' ? url(medium.url, true) : '',
+            alt: alt,
+            url: url,
+            url_target: url_tab ? '_blank' : '',
+            cta_text: cta_text,
+            cta_url: cta_url,
+            cta_target: cta_tab ? '_blank' : '',
+            abs_url: abs_url,
+            page: target
+        }]) %}
+    {% endif %}
+{% endfor %}
+
+{# 3. Markup #}
+{% if items|length %}
+{% set card_h = settings.title|default('') is not empty ? min(h + 1, 6) : h %}
+<{{ settings.title|default('') is not empty ? 'section' : 'div' }} class="{{ cl.cls('cl-listing-cards', c.root) }}"{% if settings.title|default('') is not empty %} aria-labelledby="{{ list_id|e }}-heading"{% endif %}>
+    {% if settings.title|default('') is not empty %}
+        <h{{ h }} id="{{ list_id|e }}-heading" class="{{ cl.cls('cl-listing-cards__heading', c.heading) }}">{{ settings.title|e }}</h{{ h }}>
+    {% endif %}
+    {% if settings.intro|default('') is not empty %}
+        <div class="{{ cl.cls('cl-listing-cards__intro', c.intro) }}">{{ settings.intro|markdown }}</div>
+    {% endif %}
+    <ul class="{{ cl.cls('cl-listing-cards__grid cl-listing-cards__grid--' ~ columns, c.grid) }}" role="list">
+        {% for item in items %}
+            {# The title link covers the whole card (CSS), so the card has one
+               tab stop. A button to the same place is drawn, not linked again. #}
+            {% set same_place = item.cta_url == item.url and item.cta_target == item.url_target %}
+            <li class="{{ cl.cls('cl-listing-cards__item', c.item) }}">
+                <article class="{{ cl.cls('cl-listing-cards__card' ~ (item.url ? ' cl-listing-cards__card--linked'), c.card) }}">
+                    <div class="{{ cl.cls('cl-listing-cards__body', c.body) }}">
+                        <h{{ card_h }} class="{{ cl.cls('cl-listing-cards__title', c.title) }}">
+                            {%- if item.url -%}
+                                <a class="cl-listing-cards__link" {{ cl.link_attrs(item.url, item.url_target) }} data-tracking-info="listing-card_{{ item.title|e }}">{{ item.title|e }}{% if item.url_target %}<span class="cl-listing-cards__new-tab"> (opens in a new tab)</span>{% endif %}</a>
+                            {%- else -%}
+                                {{ item.title|e }}
+                            {%- endif -%}
+                        </h{{ card_h }}>
+                        {% if item.summary|trim is not empty %}
+                            <p class="{{ cl.cls('cl-listing-cards__summary', c.summary) }}">{{ item.summary|e }}</p>
+                        {% endif %}
+                        {% if item.description|trim is not empty %}
+                            <div class="{{ cl.cls('cl-listing-cards__description', c.description) }}">{{ item.description|markdown }}</div>
+                        {% endif %}
+                        {% if item.cta_text and item.cta_url %}
+                            <p class="cl-listing-cards__action">
+                                {%- if same_place -%}
+                                    <span class="{{ cl.cls('cl-listing-cards__button', c.button) }}" aria-hidden="true">{{ item.cta_text|e }}</span>
+                                {%- else -%}
+                                    <a class="{{ cl.cls('cl-listing-cards__button', c.button) }}" {{ cl.link_attrs(item.cta_url, item.cta_target) }} data-tracking-info="listing-card-cta_{{ item.cta_text|e }}">{{ item.cta_text|e }}{% if item.cta_target %}<span class="cl-listing-cards__new-tab"> (opens in a new tab)</span>{% endif %}</a>
+                                {%- endif -%}
+                            </p>
+                        {% endif %}
+                    </div>
+                    {% if item.medium %}
+                        <div class="{{ cl.cls('cl-listing-cards__media cl-listing-cards__media--' ~ fit, c.media) }}">
+                            {%- if image_template is defined and image_template -%}
+                                {% include image_template with { medium: item.medium, alt: item.alt, fit: fit, sizes: sizes, card: item } %}
+                            {%- else -%}
+                                {% set img = item.medium %}
+                                {% if img.type|default('') == 'image' and img.mime|default('') != 'image/svg+xml' %}
+                                    {% set img = img.derivatives(320, 1280, 320).sizes(sizes) %}
+                                {% endif %}
+                                {{ img.loading('lazy').decoding('async').html('', item.alt, 'cl-listing-cards__img')|raw }}
+                            {%- endif -%}
+                        </div>
+                    {% endif %}
+                </article>
+            </li>
+        {% endfor %}
+    </ul>
+
+    {# 4. The same cards as structured data. #}
+    {% if schema is not defined or schema %}
+        {% set type = settings.schema_type|default('ListItem') %}
+        {% set type = type in ['ListItem', 'Product', 'Service'] ? type : 'ListItem' %}
+        {% set org = { '@id': site_url ~ '/#organization' } %}
+        {% set elements = [] %}
+        {% for item in items %}
+            {% if item.abs_url %}
+                {% set thing = { 'name': item.title, 'url': item.abs_url } %}
+                {% set desc = item.summary|striptags|trim ?: (item.description|markdown|striptags|trim|truncate(300, true, ' ', '…')) %}
+                {% if desc %}{% set thing = thing|merge({ 'description': desc }) %}{% endif %}
+                {% if item.abs_image %}{% set thing = thing|merge({ 'image': item.abs_image }) %}{% endif %}
+                {% if type == 'ListItem' %}
+                    {% set element = { '@type': 'ListItem', 'position': elements|length + 1 }|merge(thing) %}
+                {% else %}
+                    {% set node = { '@type': type }|merge(thing) %}
+                    {% set node = node|merge(type == 'Product' ? { 'brand': org, 'manufacturer': org } : { 'provider': org }) %}
+                    {% set element = { '@type': 'ListItem', 'position': elements|length + 1, 'item': node } %}
+                {% endif %}
+                {% set elements = elements|merge([element]) %}
+            {% endif %}
+        {% endfor %}
+        {% if elements|length %}
+            {% set list = {
+                '@context': 'https://schema.org',
+                '@type': 'ItemList',
+                '@id': page_url ~ '#' ~ list_id,
+                'name': settings.title|default(page.title),
+                'mainEntityOfPage': { '@id': page_url ~ '#webpage' },
+                'numberOfItems': elements|length,
+                'itemListElement': elements
+            } %}
+            {# 321 = JSON_HEX_TAG | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE #}
+            <script type="application/ld+json">{{ list|json_encode(321)|raw }}</script>
+        {% endif %}
+    {% endif %}
+</{{ settings.title|default('') is not empty ? 'section' : 'div' }}>
+{% endif %}

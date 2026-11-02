@@ -1,0 +1,172 @@
+# Pattern: page/listing-cards — page blueprint fragment
+# Import on the tab that should hold the cards, usually its own:
+#   listing:
+#     type: tab
+#     title: Cards
+#     import@:
+#       type: page/listing-cards/blueprint
+#       context: 'plugin://component-library/patterns'
+#
+# Rename things for one page type from the same tab, after the import:
+#     fields:
+#       header_listing_section:
+#         title: Product Tiles
+#       header.listing_cards:
+#         label: Products
+form:
+  fields:
+    header_listing_section:
+      cl_pattern: page/listing-cards
+      type: section
+      title: Listing Cards
+      text: Cards for the pages this one lists, such as categories, products or services. Drag cards to reorder them. Link a card to a page and leave its other fields empty to use that page's title, photo and summary.
+      underline: true
+
+    header.listing.title:
+      cl_pattern: page/listing-cards
+      type: text
+      label: Heading Above the Cards
+      help: Optional. Leave empty for no heading.
+      validate:
+        max: 120
+
+    header.listing.intro:
+      cl_pattern: page/listing-cards
+      type: markdown
+      label: Introduction
+      help: Optional. A sentence or two shown above the cards.
+
+    header.listing.columns:
+      cl_pattern: page/listing-cards
+      type: select
+      label: Columns on Wide Screens
+      help: Phones always show one column, tablets two.
+      default: 3
+      options:
+        2: Two
+        3: Three
+        4: Four
+      validate:
+        type: int
+
+    header.listing.image_fit:
+      cl_pattern: page/listing-cards
+      type: select
+      label: Image Fit
+      help: Whole image never crops a product photo, drawing or logo. Fill crops photographs to equal shapes.
+      default: contain
+      options:
+        contain: Whole image
+        cover: Fill the frame (crops)
+
+    header.listing.button_text:
+      cl_pattern: page/listing-cards
+      type: text
+      label: Default Call-to-Action Text
+      help: Used on cards that link somewhere but have no call-to-action text of their own. Leave empty for no button on those cards.
+      placeholder: Learn more
+      validate:
+        max: 60
+
+    header.listing.child_pages:
+      cl_pattern: page/listing-cards
+      type: select
+      label: Child Pages
+      help: Whether this page's published child pages also show as cards. A child page that a card already links to is never shown twice, and a hidden card keeps its page hidden.
+      default: ''
+      options:
+        '': Default for this page type
+        fallback: Only when there are no cards
+        append: After the cards
+        none: Never
+
+    header.listing.schema_type:
+      cl_pattern: page/listing-cards
+      type: select
+      label: Structured Data
+      help: The cards are always listed for search engines as a Schema.org ItemList. Product or Service also describes each card as one, linked to the site's organization.
+      default: ListItem
+      options:
+        ListItem: Links to pages (any listing)
+        Product: Products
+        Service: Services
+
+    header.listing_cards:
+      cl_pattern: page/listing-cards
+      type: list
+      style: vertical
+      label: Cards
+      collapsed: true
+      fields:
+        .title:
+          type: text
+          label: Title
+          help: Leave empty to use the linked page's title.
+          validate:
+            max: 120
+        .enabled:
+          type: toggle
+          label: Show This Card
+          help: Turn off to hide the card without deleting it.
+          highlight: 1
+          default: 1
+          options:
+            1: PLUGIN_ADMIN.YES
+            0: PLUGIN_ADMIN.NO
+          validate:
+            type: bool
+        .page:
+          type: pages
+          label: Linked Page
+          help: Optional. The page this card stands for, such as a category or a product nested under this page. Empty fields on the card use its title, photo, summary and address. Unpublishing that page hides the card.
+          show_all: false
+          show_modular: false
+          show_root: false
+          show_slug: true
+        .image:
+          type: filepicker
+          label: Image
+          help: Choose from this page's media. Leave empty to use the linked page's photo.
+          preview_images: true
+          accept:
+            - .jpg
+            - .jpeg
+            - .png
+            - .webp
+            - .avif
+            - .svg
+        .image_alt:
+          type: text
+          label: Image Alt Text
+          help: Describe what the image shows. Leave it empty when the card title already says it.
+        .short_description:
+          type: text
+          label: Short Description
+          help: One line on the card, also used for search engines. Leave empty to use the linked page's summary.
+          validate:
+            max: 200
+        .description:
+          type: markdown
+          label: Description
+          help: Optional. A short paragraph or list under the short description.
+        .cta_text:
+          type: text
+          label: Call-to-Action Text
+          help: The button label, such as "View products". Leave empty to use the default above.
+          validate:
+            max: 60
+        .cta_link:
+          type: text
+          label: Call-to-Action Link
+          help: A site path such as /contact-us, or a full https:// address. Leave empty to link to the linked page.
+          placeholder: /some-page
+        .cta_new_tab:
+          type: toggle
+          label: Open the Link in a New Tab
+          highlight: 0
+          default: 0
+          options:
+            1: PLUGIN_ADMIN.YES
+            0: PLUGIN_ADMIN.NO
+          validate:
+            type: bool
