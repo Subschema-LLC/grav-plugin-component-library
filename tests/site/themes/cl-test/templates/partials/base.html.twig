@@ -5,6 +5,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     {% include 'patterns/page/page-heading/title-tag.html.twig' %}
+    {# missing-touch.png does not exist, so no touch icon is linked without an upload. #}
+    {% include 'patterns/theme/site-icons/site-icons.html.twig' with { fallback: { icon: 'theme://images/fallback-icon.png', svg: 'theme://images/fallback-icon.svg', touch: 'theme://images/missing-touch.png' } } %}
     {% block javascripts %}
         {% include 'patterns/theme/datalayer/datalayer.html.twig' %}
         {% include 'patterns/theme/map-here/map-here.html.twig' with { map_templates: ['map'] } %}

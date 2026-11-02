@@ -1,0 +1,19 @@
+# user/config/themes/<your-theme>.yaml (what Admin saves)
+site_icon:
+  user/assets/site-icons/favicon-192.png:
+    name: favicon-192.png
+    type: image/png
+    size: 3184
+    path: user/assets/site-icons/favicon-192.png
+site_icon_svg:
+  user/assets/site-icons/favicon.svg:
+    name: favicon.svg
+    type: image/svg+xml
+    size: 612
+    path: user/assets/site-icons/favicon.svg
+site_icon_touch:
+  user/assets/site-icons/apple-touch-icon.png:
+    name: apple-touch-icon.png
+    type: image/png
+    size: 5021
+    path: user/assets/site-icons/apple-touch-icon.png

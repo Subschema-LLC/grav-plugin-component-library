@@ -20,6 +20,12 @@ form:
       import@:
         type: theme/site-logo/blueprint
         context: 'plugin://component-library/patterns'
+    icons_section:
+      type: section
+      title: Site Icons
+      import@:
+        type: theme/site-icons/blueprint
+        context: 'plugin://component-library/patterns'
     authors_section:
       type: section
       title: Authors
