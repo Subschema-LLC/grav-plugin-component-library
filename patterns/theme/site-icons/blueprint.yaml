@@ -1,0 +1,46 @@
+# Pattern: theme/site-icons — theme blueprint fragment
+# Import on a section in the theme's blueprints.yaml:
+#   icons_section:
+#     type: section
+#     title: Site Icons
+#     underline: true
+#     import@:
+#       type: theme/site-icons/blueprint
+#       context: 'plugin://component-library/patterns'
+form:
+  fields:
+    site_icon:
+      cl_pattern: theme/site-icons
+      type: file
+      label: Favicon (PNG)
+      help: A square PNG, 96 × 96 px or larger. Every browser and Google Search use this one. Saved in user/assets/site-icons, so a theme update never removes it.
+      destination: 'user://assets/site-icons'
+      multiple: false
+      limit: 1
+      filesize: 1
+      accept:
+        - image/png
+
+    site_icon_svg:
+      cl_pattern: theme/site-icons
+      type: file
+      label: Favicon (SVG, optional)
+      help: Sharper in browsers that support SVG favicons. Safari and Google Search do not use SVG favicons, so upload the PNG as well.
+      destination: 'user://assets/site-icons'
+      multiple: false
+      limit: 1
+      filesize: 1
+      accept:
+        - image/svg+xml
+
+    site_icon_touch:
+      cl_pattern: theme/site-icons
+      type: file
+      label: Home-Screen Icon (optional)
+      help: A 180 × 180 px PNG on a solid background, shown when someone adds the site to an iPhone or iPad home screen. iOS does not keep transparency.
+      destination: 'user://assets/site-icons'
+      multiple: false
+      limit: 1
+      filesize: 1
+      accept:
+        - image/png

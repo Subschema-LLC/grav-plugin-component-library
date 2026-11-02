@@ -1,0 +1,9 @@
+{#
+    Fixture only. site-icons reads theme config, never page front matter, so
+    this template copies the icon keys from the page header into theme config
+    for this request, to test uploads and missing files.
+#}
+{% do grav.config.set('theme.site_icon', page.header.site_icon) %}
+{% do grav.config.set('theme.site_icon_svg', page.header.site_icon_svg) %}
+{% do grav.config.set('theme.site_icon_touch', page.header.site_icon_touch) %}
+{% extends 'default.html.twig' %}

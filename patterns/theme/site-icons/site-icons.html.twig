@@ -1,0 +1,31 @@
+{#
+    Pattern: theme/site-icons
+
+    In the theme's <head>:
+
+        {% include 'patterns/theme/site-icons/site-icons.html.twig' with {
+            fallback: { icon: 'theme://images/favicon.png', svg: 'theme://images/favicon.svg' }
+        } %}
+
+    Prints the icon links: the PNG favicon (every browser and Google Search),
+    the SVG favicon after it, and the Apple touch icon. Each comes from its
+    upload in the theme settings, else from `fallback`, the icons the theme
+    ships with (keys icon, svg, touch; stream paths or URLs). An icon with
+    neither is left out.
+#}
+{% import 'patterns/theme/site-icons/icons.macros.twig' as icons %}
+{% set fb = { icon: '', svg: '', touch: '' }|merge(fallback|default({})) %}
+{% set png = icons.src('site_icon', false, fb.icon) %}
+{% set svg = icons.src('site_icon_svg', false, fb.svg) %}
+{% set touch = icons.src('site_icon_touch', false, fb.touch) %}
+{% set types = { png: 'image/png', ico: 'image/x-icon', gif: 'image/gif' } %}
+{% set type = types[(png|split('?')|first|split('.')|last|lower)]|default('') %}
+{% if png|length > 0 %}
+<link rel="icon"{% if type %} type="{{ type }}"{% endif %} href="{{ png }}">
+{% endif %}
+{% if svg|length > 0 %}
+<link rel="icon" type="image/svg+xml" href="{{ svg }}">
+{% endif %}
+{% if touch|length > 0 %}
+<link rel="apple-touch-icon" href="{{ touch }}">
+{% endif %}

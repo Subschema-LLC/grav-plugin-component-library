@@ -13,7 +13,7 @@
     "repository": "https://github.com/Subschema-LLC/grav-plugin-component-library",
     "spec": "docs/PATTERN_SPEC.md",
     "agents": "AGENTS.md",
-    "pattern_count": 26,
+    "pattern_count": 27,
     "patterns": [
         {
             "id": "page-type/bookable-tour",
@@ -2712,6 +2712,95 @@
                 "patterns/theme/schema-graph/example.md"
             ],
             "raw_base": "https://raw.githubusercontent.com/Subschema-LLC/grav-plugin-component-library/main/patterns/theme/schema-graph/"
+        },
+        {
+            "id": "theme/site-icons",
+            "name": "Site icons",
+            "version": "1.0.0",
+            "level": "theme",
+            "touches": [],
+            "status": "stable",
+            "summary": "Upload fields for the favicon (PNG, plus an optional SVG) and the Apple touch icon, stored outside the theme folder, with a head partial that falls back to the theme's own icons.",
+            "use_when": [
+                "Editors should be able to change the favicon from the theme settings instead of replacing a file on the server.",
+                "The theme is deployed by replacing its folder (a Git theme sync, a GPM update, a reinstall), so an icon swapped inside that folder would be overwritten."
+            ],
+            "avoid_when": [
+                "The site is an installable web app that needs a manifest with maskable icons and colors; write the manifest in the theme and get the icon URLs from icons.src()."
+            ],
+            "compatibility": {
+                "grav": [
+                    "1.7",
+                    "2.0"
+                ],
+                "tested": [
+                    "2.2.11",
+                    "1.7.53"
+                ]
+            },
+            "requires": {},
+            "data": {
+                "scope": "theme",
+                "keys": {
+                    "site_icon": {
+                        "type": "file map",
+                        "description": "Square PNG favicon. Grav file field value: { 'user/assets/site-icons/favicon.png': { name, path, type, size } }"
+                    },
+                    "site_icon_svg": {
+                        "type": "file map",
+                        "description": "Optional SVG favicon, stored the same way."
+                    },
+                    "site_icon_touch": {
+                        "type": "file map",
+                        "description": "Optional 180 × 180 px PNG for iPhone and iPad home screens, stored the same way."
+                    }
+                }
+            },
+            "legacy_keys": [],
+            "import": {
+                "type": "theme/site-icons/blueprint",
+                "context": "plugin://component-library/patterns"
+            },
+            "include": "patterns/theme/site-icons/site-icons.html.twig",
+            "apply": {
+                "blueprint": "# theme blueprints.yaml, under form.fields:\nicons_section:\n  type: section\n  title: Site Icons\n  underline: true\n  import@:\n    type: theme/site-icons/blueprint\n    context: 'plugin://component-library/patterns'\n",
+                "template": "{# in <head>; fallback names the icons the theme ships with #}\n{% include 'patterns/theme/site-icons/site-icons.html.twig' with {\n    fallback: { icon: 'theme://images/favicon.png', svg: 'theme://images/favicon.svg' }\n} %}\n\n{# A theme that must keep its favicon when the plugin is not installed: #}\n{% set icon_links = include('patterns/theme/site-icons/site-icons.html.twig', { fallback: { icon: 'theme://images/favicon.png' } }, true, true) %}\n{% if icon_links|trim is not empty %}{{ icon_links|raw }}{% else %}<link rel=\"icon\" type=\"image/png\" href=\"{{ url('theme://images/favicon.png')|e }}\">{% endif %}\n\n{# Anywhere else that needs an icon URL (a web app manifest, say): #}\n{% import 'patterns/theme/site-icons/icons.macros.twig' as icons %}\n{% set icon_url = icons.src('site_icon', true) %}\n"
+            },
+            "classes": null,
+            "solves": [
+                {
+                    "problem": "The favicon was hard-coded to a file in the theme's own folder, and the hosting panel's Git sync replaces that folder on every pull, so a favicon replaced on the server came back as the old one after the next sync.",
+                    "fix": "Uploads are stored in user://assets/site-icons; the theme's bundled icon is only the fallback.",
+                    "seen_in": "theme deployed through a hosting panel's Git theme sync"
+                },
+                {
+                    "problem": "Editors could not change the favicon from Admin. Each theme kept it somewhere else (its images folder, an assets folder, the site root), so changing it meant finding the file, uploading over it on the server and checking the template.",
+                    "fix": "Theme settings fields, rendered by one partial.",
+                    "seen_in": "repeated support questions on Grav sites"
+                },
+                {
+                    "problem": "The theme linked only an SVG favicon. Safari and Google Search do not use SVG favicons, so neither showed the site's icon.",
+                    "fix": "A PNG field, which every browser and Google Search accept, with the SVG as an optional extra listed after it.",
+                    "seen_in": "theme deployed through a hosting panel's Git theme sync"
+                }
+            ],
+            "verify": [
+                "Theme settings show Favicon (PNG), Favicon (SVG, optional) and Home-Screen Icon (optional).",
+                "With nothing uploaded, <head> links the theme's fallback icons, and only those whose files exist.",
+                "After an upload, the file is in user/assets/site-icons/ and its link points there with ?v=<file size>.",
+                "The PNG icon link comes before the SVG one.",
+                "A page's front matter cannot change the icons."
+            ],
+            "path": "patterns/theme/site-icons",
+            "readme": "patterns/theme/site-icons/README.md",
+            "manifest": "patterns/theme/site-icons/pattern.yaml",
+            "files": [
+                "patterns/theme/site-icons/blueprint.yaml",
+                "patterns/theme/site-icons/site-icons.html.twig",
+                "patterns/theme/site-icons/icons.macros.twig",
+                "patterns/theme/site-icons/example.yaml"
+            ],
+            "raw_base": "https://raw.githubusercontent.com/Subschema-LLC/grav-plugin-component-library/main/patterns/theme/site-icons/"
         },
         {
             "id": "theme/site-logo",
