@@ -70,7 +70,7 @@ pages = {}
 for route in ["/", "/cta-rows", "/tiles", "/quick-actions", "/page-heading", "/header-image", "/hero-actions",
               "/north-landing", "/boat-launch", "/embeds", "/map", "/jobs", "/jobs/seasonal-tour-guide",
               "/jobs/closed-position", "/tour", "/landing", "/legacy", "/legacy-tour", "/legacy-jobs", "/quiet", "/logo", "/logo-missing",
-              "/icons", "/icons-missing"]:
+              "/icons", "/icons-missing", "/gear", "/gear-catalog"]:
     status, html = get(route)
     pages[route] = html
     common(route, html, status)
@@ -187,6 +187,48 @@ if place:
 check("/north-landing", "</script><b>" not in nl, "JSON_HEX_TAG keeps </script> out of the JSON-LD")
 hg = graph(pages["/header-image"]) or []
 check("/header-image", hg and str(hg[-1].get("image", "")).startswith("http"), "page image in JSON-LD is absolute")
+
+
+def listing(html):
+    """The listing-cards block from its opening tag to the end of its grid, or ''."""
+    m = re.search(r'<(?:section|div) class="cl-listing-cards[ "].*?</ul>', html, re.S)
+    return m.group(0) if m else ""
+
+
+def item_list(html):
+    return next((d for d in jsonld(html) if d.get("@type") == "ItemList"), None)
+
+
+g = listing(pages["/gear"])
+cards = re.findall(r'<li class="cl-listing-cards__item">(.*?)</li>', g, re.S)
+titles = [re.sub(r"<[^>]+>", "", re.search(r'class="cl-listing-cards__title">(.*?)</h\d>', c, re.S).group(1)).strip() for c in cards]
+check("/gear", titles == ["Canoes", "Guided float trip (opens in a new tab)", "Kayaks"], f"cards in order, then child pages no card links: {titles}")
+check("/gear", "Paddleboards" not in g and "Retired Boat" not in g, "a hidden card and a card for an unpublished page do not render, nor come back as child pages")
+check("/gear", '<section class="cl-listing-cards" aria-labelledby="listing-heading">' in g and '<h2 id="listing-heading"' in g, "titled listing is a labelled section")
+check("/gear", count(g, r'<h3 class="cl-listing-cards__title">') == 3, "card titles one level below the listing heading")
+check("/gear", "Reserve a day ahead" in g and "<strong>9 am</strong>" in g, "intro and description markdown")
+check("/gear", cards and cards[0].count('href="/gear/canoes"') == 1, "a linked card links to its page once")
+check("/gear", cards and 'class="cl-listing-cards__button btn btn-sm" href="/reserve?boat=canoe&amp;people=2"' in cards[0], "a call to action elsewhere stays a real, escaped link")
+check("/gear", cards and 'src="/user/pages/23.gear/01.canoes/example-photo.jpg"' in cards[0] and 'alt=""' in cards[0], "linked card uses its page's card_image, decorative alt")
+check("/gear", len(cards) > 1 and 'target="_blank" rel="noopener noreferrer"' in cards[1] and 'alt="Two canoes on a calm river at sunrise"' in cards[1], "own link opens in a new tab with its own image")
+check("/gear", len(cards) > 1 and '<span class="cl-listing-cards__button btn btn-sm" aria-hidden="true">Book a trip</span>' in cards[1], "a button to the title's address is not a second link")
+check("/gear", len(cards) > 2 and "Sit-on-top kayaks for one paddler." in cards[2] and "See details" in cards[2], "child page: meta description (summary settings map skipped), default call to action")
+check("/gear", "cl-listing-cards__grid--3" in g and "cl-listing-cards__media--contain" in g and "srcset=" in g, "columns, image fit and responsive images")
+il = item_list(pages["/gear"]) or {}
+els = il.get("itemListElement", [])
+check("/gear", il.get("@id", "").endswith("/gear#listing") and il.get("mainEntityOfPage", {}).get("@id", "").endswith("/gear#webpage"), "ItemList @id and link to the page entity")
+check("/gear", il.get("numberOfItems") == len(els) == 3 and [e.get("position") for e in els] == [1, 2, 3], "ItemList counts and positions")
+check("/gear", all(e.get("@type") == "ListItem" and str(e.get("url", "")).startswith("http") for e in els), "ListItems with absolute URLs")
+check("/gear", els and str(els[0].get("image", "")).startswith("http") and els[0].get("name") == "Canoes", "linked card's name and absolute image")
+
+gc = listing(pages["/gear-catalog"])
+check("/gear-catalog", gc.startswith('<div class="cl-listing-cards">') and count(gc, r'<h2 class="cl-listing-cards__title">') == 2, "no cards: child pages (fallback) as h2 cards in an untitled block")
+check("/gear-catalog", "cl-listing-cards__grid--4" in gc and "cl-listing-cards__media--cover" in gc, "four columns, cover fit")
+check("/gear-catalog", "packs to &lt;b&gt;two&lt;/b&gt; pounds" in gc, "a text summary from the page header is escaped")
+il = item_list(pages["/gear-catalog"]) or {}
+prods = [e.get("item", {}) for e in il.get("itemListElement", [])]
+check("/gear-catalog", len(prods) == 2 and all(p.get("@type") == "Product" and p.get("brand", {}).get("@id", "").endswith("/#organization") for p in prods), "Product items branded by the organization")
+check("/gear-catalog", il.get("name") == "Camp <gear> & stoves" and all("<" not in p.get("description", "") for p in prods), "ItemList name from the page title; descriptions without tags")
 
 # Page types ------------------------------------------------------------------
 m = pages["/map"]
