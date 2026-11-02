@@ -1,0 +1,29 @@
+{#
+    Pattern: theme/site-icons — URL helper, also for a theme's own web app manifest.
+    {% import 'patterns/theme/site-icons/icons.macros.twig' as icons %}
+
+    src(key, absolute, fallback): the URL of the icon uploaded in the theme
+    setting `key` (site_icon, site_icon_svg or site_icon_touch), escaped, with
+    ?v=<file size> so browsers fetch a replaced icon again. When nothing is
+    uploaded, or the uploaded file is gone, `fallback` is used: a stream path
+    such as theme://images/favicon.png (only when that file exists) or a URL.
+    An empty string when there is neither. Test the result with |length, and
+    print it as is: it is already escaped.
+
+    Read with grav.config, not theme_var(): a site has one set of icons, and
+    theme_var() would let any page's front matter replace them.
+#}
+{% macro src(key, absolute, fallback) -%}
+    {%- set value = grav.config.get('theme.' ~ key) -%}
+    {%- set file = value is iterable ? value|first : null -%}
+    {%- set path = file is iterable ? file.path|default('') : (value is not iterable ? value|default('') : '') -%}
+    {#- The file field stores user/assets/...; looked up as user://assets/..., url() returns false when the file is gone. -#}
+    {%- set stream = path starts with 'user/' ? 'user://' ~ path[5:] : path -%}
+    {%- set found = stream is not empty ? url(stream, absolute|default(false)) : false -%}
+    {%- if found -%}
+        {{- found|e -}}{%- if file is iterable and file.size|default(0) -%}?v={{- file.size|e('url') -}}{%- endif -%}
+    {%- elseif fallback is not empty -%}
+        {%- set alt = ('://' in fallback and not (fallback starts with 'http')) ? url(fallback, absolute|default(false)) : fallback -%}
+        {%- if alt -%}{{- alt|e -}}{%- endif -%}
+    {%- endif -%}
+{%- endmacro %}

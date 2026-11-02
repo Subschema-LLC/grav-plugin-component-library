@@ -47,7 +47,7 @@ EXPECT = {
     "/blueprints/pages/job": ["header.jobtitle", "header.job.salary.min", "header.job.valid_through"],
     "/blueprints/pages/jobs": ["header.jobs.empty_message"],
     "/blueprints/pages/tour": ["header.tour.schedule", "header.tour.price", "header.embeds"],
-    "/blueprints/themes/cl-test": ["site_logo", "authors", "footer_columns", "footer_embed", "datalayer.env", "tracking_tags",
+    "/blueprints/themes/cl-test": ["site_logo", "site_icon", "site_icon_svg", "site_icon_touch", "authors", "footer_columns", "footer_embed", "datalayer.env", "tracking_tags",
                                    "here_map.api_key", "schema_defaults.organization_type"],
     "/blueprints/plugins/component-library": ["enabled", "load_css", "icon_base_class"],
 }
@@ -124,7 +124,7 @@ try:
     check("**Tiles (card grid)**" in tiles_label["text"] and "`page/tiles`" in tiles_label["text"], f"tiles label text: {tiles_label['text']}")
     check(not any("category" in f["name"] for f in labels), "the theme's own field (header.category) gets no label")
     theme_labels = [f["name"] for f in flat(fetch("/blueprints/themes/cl-test")["fields"]) if str(f.get("name", "")).startswith("cl_component_")]
-    check("cl_component_theme_site_logo" in theme_labels and "cl_component_theme_footer_columns" in theme_labels, f"theme labels: {theme_labels}")
+    check("cl_component_theme_site_logo" in theme_labels and "cl_component_theme_site_icons" in theme_labels and "cl_component_theme_footer_columns" in theme_labels, f"theme labels: {theme_labels}")
 
     page = fetch("/component-library/page?route=/tiles")
     by_id = {c["id"]: c for c in page["components"]}

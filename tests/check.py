@@ -69,7 +69,8 @@ def common(route, html, status):
 pages = {}
 for route in ["/", "/cta-rows", "/tiles", "/quick-actions", "/page-heading", "/header-image", "/hero-actions",
               "/north-landing", "/boat-launch", "/embeds", "/map", "/jobs", "/jobs/seasonal-tour-guide",
-              "/jobs/closed-position", "/tour", "/landing", "/legacy", "/legacy-tour", "/legacy-jobs", "/quiet", "/logo", "/logo-missing"]:
+              "/jobs/closed-position", "/tour", "/landing", "/legacy", "/legacy-tour", "/legacy-jobs", "/quiet", "/logo", "/logo-missing",
+              "/icons", "/icons-missing"]:
     status, html = get(route)
     pages[route] = html
     common(route, html, status)
@@ -118,6 +119,20 @@ lm = pages["/logo-missing"]
 check("/logo-missing", "uploaded-logo.png" in lm and "deleted-logo.png" not in lm, "a missing picked file falls back to site_logo")
 lmo = (graph(lm) or [{}])[0].get("logo", {}).get("url", "")
 check("/logo-missing", lmo.startswith("http") and lmo.endswith("/images/uploaded-logo.png"), f"schema logo falls back to the upload: {lmo}")
+
+hd = h.split("</head>")[0]
+check("/", re.search(r'<link rel="icon" type="image/png" href="[^"]*/images/fallback-icon\.png">', hd), "fallback PNG icon in <head>")
+check("/", re.search(r'<link rel="icon" type="image/svg\+xml" href="[^"]*/images/fallback-icon\.svg">', hd), "fallback SVG icon in <head>")
+check("/", 0 <= hd.find("fallback-icon.png") < hd.find("fallback-icon.svg"), "PNG icon listed before the SVG icon")
+check("/", "missing-touch.png" not in h and 'rel="apple-touch-icon"' not in h, "a fallback whose file is missing is left out")
+ic = pages["/icons"].split("</head>")[0]
+check("/icons", re.search(r'<link rel="icon" type="image/png" href="[^"]*/images/uploaded-icon\.png\?v=79">', ic), "uploaded PNG icon with ?v=<size>")
+check("/icons", re.search(r'<link rel="icon" type="image/svg\+xml" href="[^"]*/images/uploaded-icon\.svg\?v=111">', ic), "uploaded SVG icon with ?v=<size>")
+check("/icons", re.search(r'<link rel="apple-touch-icon" href="[^"]*/images/uploaded-icon\.png\?v=79">', ic), "uploaded touch icon")
+check("/icons", "fallback-icon" not in pages["/icons"] and count(ic, r'<link rel="icon"') == 2, "uploads replace the fallbacks, one link each")
+im = pages["/icons-missing"]
+check("/icons-missing", "deleted-icon.png" not in im and "/images/fallback-icon.png" in im, "a missing upload falls back to the theme's icon")
+check("/quiet", "uploaded-icon" not in q and "icons.example.invalid" not in q and "/images/fallback-icon.png" in q, "page front matter cannot change the icons")
 
 # Page level ------------------------------------------------------------------
 c = pages["/cta-rows"]

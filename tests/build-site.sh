@@ -144,6 +144,9 @@ head_scripts: false
 schema:
   enabled: false
 page_scripts: '<script>/*PAGE-SCRIPTS*/</script>'
+site_icon:
+  user/themes/cl-test/images/uploaded-icon.png: { name: uploaded-icon.png, path: user/themes/cl-test/images/uploaded-icon.png, type: image/png, size: 79 }
+site_icon_svg: 'https://icons.example.invalid/page-icon.svg'
 ---
 No tracking, no structured data.
 EOF
@@ -169,6 +172,30 @@ site_logo:
 picked_site_logo_image: deleted-logo.png
 ---
 The picked logo file does not exist.
+EOF2
+
+# All three icons uploaded (icons-test.html.twig copies them into theme config).
+page 21.icons icons-test.md - <<'EOF2'
+---
+title: Uploaded Icons
+site_icon:
+  user/themes/cl-test/images/uploaded-icon.png: { name: uploaded-icon.png, path: user/themes/cl-test/images/uploaded-icon.png, type: image/png, size: 79 }
+site_icon_svg:
+  user/themes/cl-test/images/uploaded-icon.svg: { name: uploaded-icon.svg, path: user/themes/cl-test/images/uploaded-icon.svg, type: image/svg+xml, size: 111 }
+site_icon_touch:
+  user/themes/cl-test/images/uploaded-icon.png: { name: uploaded-icon.png, path: user/themes/cl-test/images/uploaded-icon.png, type: image/png, size: 79 }
+---
+Every icon is uploaded.
+EOF2
+
+# The uploaded PNG is gone: the theme's fallback is used.
+page 22.icons-missing icons-test.md - <<'EOF2'
+---
+title: Icon Upload Missing
+site_icon:
+  user/themes/cl-test/images/deleted-icon.png: { name: deleted-icon.png, path: user/themes/cl-test/images/deleted-icon.png, type: image/png, size: 79 }
+---
+The uploaded favicon file does not exist.
 EOF2
 
 echo "Fixture site built in $GRAV_ROOT/user"
