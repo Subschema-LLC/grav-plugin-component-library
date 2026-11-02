@@ -156,7 +156,7 @@ where per-page usage appears.
 | Level | Patterns |
 |---|---|
 | Theme | site logo, site icons (favicon), author registry, footer columns, head and body-end scripts, data layer, HERE map with conditional loading, Schema.org graph |
-| Page | page heading and title tag, header image, hero actions, quick actions, tiles, CTA rows, map location, embeds and page scripts |
+| Page | page heading and title tag, header image, hero actions, quick actions, tiles, listing cards, CTA rows, map location, embeds and page scripts |
 | Page types | map page, job listing and postings, bookable tour, modular page |
 | System | compatibility flag, Admin2-safe plugin forms, dynamic select options, front-end output guards, Twig in content, template hygiene, environments and secrets |
 
@@ -165,6 +165,7 @@ where per-page usage appears.
 | Goal | Patterns to use |
 |---|---|
 | Landing or content page with cards, call-to-action sections and shortcut links | `page/page-heading`, `page/header-image`, `page/hero-actions`, `page/quick-actions`, `page/tiles`, `page/cta-rows` |
+| Product, category or service listing pages whose cards editors add, hide and reorder, with ItemList structured data | `page/listing-cards` (+ `theme/schema-graph` with `main_entity: '#listing'`) |
 | Modular page where editors reorder sections | `page-type/modular-page` (built from `page/tiles` and `page/cta-rows`) |
 | Site branding (logo and favicon), navigation footer and linked Schema.org JSON-LD | `theme/site-logo`, `theme/site-icons`, `theme/footer-columns`, `theme/schema-graph` |
 | Interactive map of places across the site | `theme/map-here` + `page/map-location` on place pages + `page-type/map-page` |

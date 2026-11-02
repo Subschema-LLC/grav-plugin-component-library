@@ -43,6 +43,12 @@ form:
           import@4:
             type: page/cta-rows/blueprint
             context: 'plugin://component-library/patterns'
+        listing:
+          type: tab
+          title: Listing
+          import@:
+            type: page/listing-cards/blueprint
+            context: 'plugin://component-library/patterns'
         embeds_tab:
           type: tab
           title: Embeds

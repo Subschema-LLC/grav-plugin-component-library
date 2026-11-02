@@ -42,7 +42,9 @@ EXPECT = {
     "/blueprints/pages/default": ["header.seo_page_title", "header.header_image_file", "header.author", "header.map_marker.latitude",
                                   "header.map_enabled", "header.primary_cta_text", "header.quick_actions", "header.tiles",
                                   "header.info_cta_section", "header.info_cta_section.cta_section_image", "header.tiles.tile_image",
-                                  "header.embeds", "header.schema.type", "header.schema.custom_json"],
+                                  "header.embeds", "header.schema.type", "header.schema.custom_json",
+                                  "header.listing.child_pages", "header.listing.schema_type", "header.listing_cards",
+                                  "header.listing_cards.page", "header.listing_cards.cta_new_tab"],
     "/blueprints/pages/map": ["header.map_page.include_pages", "header.map_markers"],
     "/blueprints/pages/job": ["header.jobtitle", "header.job.salary.min", "header.job.valid_through"],
     "/blueprints/pages/jobs": ["header.jobs.empty_message"],
@@ -117,7 +119,7 @@ try:
     default = flat(fetch("/blueprints/pages/default")["fields"])
     labels = [f for f in default if str(f.get("name", "")).startswith("cl_component_")]
     ids = sorted(f["name"] for f in labels)
-    check(len(labels) == 11 and all(f["type"] == "spacer" for f in labels), f"default blueprint: expected 11 spacer labels, got {ids}")
+    check(len(labels) == 12 and all(f["type"] == "spacer" for f in labels), f"default blueprint: expected 12 spacer labels, got {ids}")
     pos = [f.get("name") for f in default]
     check(pos.index("cl_component_page_tiles") == pos.index("header_tiles_section") + 1, "the tiles label sits right under its section heading")
     tiles_label = next(f for f in labels if f["name"] == "cl_component_page_tiles")
@@ -128,7 +130,7 @@ try:
 
     page = fetch("/component-library/page?route=/tiles")
     by_id = {c["id"]: c for c in page["components"]}
-    check(page["template"] == "default" and len(by_id) == 11, f"/tiles offers 11 components, got {sorted(by_id)}")
+    check(page["template"] == "default" and len(by_id) == 12, f"/tiles offers 12 components, got {sorted(by_id)}")
     check(by_id.get("page/tiles", {}).get("has_content") is True and by_id["page/tiles"]["tab"] == "Content Blocks", f"page/tiles on /tiles: {by_id.get('page/tiles')}")
     check(bool(by_id.get("page/tiles", {}).get("summary")), "page component includes summary")
     check(by_id.get("page/cta-rows", {}).get("has_content") is False, "cta-rows is empty on /tiles")
@@ -139,7 +141,7 @@ try:
     check(fetch("/component-library/page-badge?route=/no-such-page").get("count") == 0, "badge is 0 for an unknown page")
 
     catalog_list = fetch("/component-library/patterns?level=page")
-    check(catalog_list.get("count") == 8 and all(p["level"] == "page" for p in catalog_list.get("patterns", [])), f"patterns endpoint level=page: {catalog_list.get('count')}")
+    check(catalog_list.get("count") == 9 and all(p["level"] == "page" for p in catalog_list.get("patterns", [])), f"patterns endpoint level=page: {catalog_list.get('count')}")
     tiles_spec = fetch("/component-library/pattern?id=tiles")
     check(tiles_spec.get("id") == "page/tiles" and "copy_mode" in tiles_spec and "partials/tiles" in tiles_spec["copy_mode"]["apply"].get("blueprint", ""), "pattern endpoint resolves short name and includes copy_mode")
 

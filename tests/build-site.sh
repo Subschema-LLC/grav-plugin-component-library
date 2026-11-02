@@ -198,4 +198,67 @@ site_icon:
 The uploaded favicon file does not exist.
 EOF2
 
+# Listing cards: cards in order, a hidden card, a card for an unpublished page,
+# and child pages appended after the cards (page/listing-cards example).
+page 23.gear default.md "$P/page/listing-cards/example.md" image
+page 23.gear/01.canoes default.md - <<'EOF2'
+---
+title: Canoes
+card_image: example-photo.jpg
+---
+Canoe rentals.
+EOF2
+cp "$F/example-photo.jpg" "$U/pages/23.gear/01.canoes/"
+page 23.gear/02.kayaks default.md - <<'EOF2'
+---
+title: Kayaks
+summary:
+  enabled: true
+  size: 300
+metadata:
+  description: Sit-on-top kayaks for one paddler.
+---
+Kayak rentals.
+EOF2
+page 23.gear/03.paddleboards default.md - <<'EOF2'
+---
+title: Paddleboards
+---
+Hidden from the listing by its card.
+EOF2
+page 23.gear/04.retired-boat default.md - <<'EOF2'
+---
+title: Retired Boat
+published: false
+---
+No longer rented.
+EOF2
+
+# No cards: child pages only (fallback), described as Products, four columns.
+page 24.gear-catalog default.md - <<'EOF2'
+---
+title: 'Camp <gear> & stoves'
+listing:
+  columns: 4
+  image_fit: cover
+  child_pages: fallback
+  schema_type: Product
+---
+Everything for a night at the campground.
+EOF2
+page 24.gear-catalog/tent default.md - <<'EOF2'
+---
+title: Two-Person Tent
+summary: 'A freestanding tent that packs to <b>two</b> pounds.'
+---
+Tent.
+EOF2
+cp "$F/example-photo.jpg" "$U/pages/24.gear-catalog/tent/"
+page 24.gear-catalog/stove default.md - <<'EOF2'
+---
+title: Camp Stove
+---
+A one-burner stove for boiling water and simple meals.
+EOF2
+
 echo "Fixture site built in $GRAV_ROOT/user"

@@ -1,7 +1,7 @@
 <!-- Generated from pattern.yaml by `bin/plugin component-library catalog`. Edit pattern.yaml, not this file. -->
 # Tiles (card grid)
 
-`page/tiles` · v1.1.0 · stable · Grav 1.7, 2.0 (tested on 2.2.11, 1.7.53)
+`page/tiles` · v1.1.1 · stable · Grav 1.7, 2.0 (tested on 2.2.11, 1.7.53)
 
 An editor-managed grid of cards with widths, icons, markdown text, images, an optional whole-card link and a button, plus a hook for tile types that other templates render.
 
@@ -13,6 +13,7 @@ An editor-managed grid of cards with widths, icons, markdown text, images, an op
 
 - Each item is a full-width section with one action; use [page/cta-rows](../../page/cta-rows/README.md).
 - The cards are just links with a short description; use [page/quick-actions](../../page/quick-actions/README.md).
+- Each card stands for a page (a product, category or service) and the list needs child pages or ItemList structured data; use [page/listing-cards](../../page/listing-cards/README.md).
 
 ## Requires
 

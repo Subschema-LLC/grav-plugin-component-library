@@ -1,6 +1,6 @@
 id: page/tiles
 name: Tiles (card grid)
-version: 1.1.0
+version: 1.1.1
 level: page
 status: stable
 summary: An editor-managed grid of cards with widths, icons, markdown text, images, an optional whole-card link and a button, plus a hook for tile types that other templates render.
@@ -9,6 +9,7 @@ use_when:
 avoid_when:
   - Each item is a full-width section with one action; use page/cta-rows.
   - The cards are just links with a short description; use page/quick-actions.
+  - Each card stands for a page (a product, category or service) and the list needs child pages or ItemList structured data; use page/listing-cards.
 compatibility:
   grav: ['1.7', '2.0']
   tested: ['2.2.11', '1.7.53']

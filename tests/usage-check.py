@@ -31,6 +31,7 @@ check(report["theme"] == "cl-test", f"theme {report['theme']}")
 check(report["pages_scanned"] >= 20, f"pages scanned {report['pages_scanned']}")
 check(any(p["route"] == "/tiles" for p in by_id.get("page/tiles", {}).get("pages", [])), "/tiles has tile content")
 check(any(p["route"] == "/cta-rows" for p in by_id.get("page/cta-rows", {}).get("pages", [])), "/cta-rows has row content")
+check(any(p["route"] == "/gear" for p in by_id.get("page/listing-cards", {}).get("pages", [])), "/gear has listing cards")
 check(not any(p["route"] == "/quiet" for c in report["components"] for p in c["pages"] if c["id"] in ("page/tiles", "page/cta-rows")), "/quiet has no blocks")
 tabs = {t["template"]: t["tab"] for t in by_id.get("page/tiles", {}).get("templates", [])}
 check(tabs.get("default") == "Content Blocks", f"tiles tab on default: {tabs}")
