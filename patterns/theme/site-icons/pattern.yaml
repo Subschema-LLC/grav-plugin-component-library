@@ -16,8 +16,8 @@ data:
   scope: theme
   keys:
     site_icon: { type: file map, description: "Square PNG favicon. Grav file field value: { 'user/assets/site-icons/favicon.png': { name, path, type, size } }" }
-    site_icon_svg: { type: file map, description: Optional SVG favicon, stored the same way. }
-    site_icon_touch: { type: file map, description: Optional 180 × 180 px PNG for iPhone and iPad home screens, stored the same way. }
+    site_icon_svg: { type: file map, description: "Optional SVG favicon, stored the same way." }
+    site_icon_touch: { type: file map, description: "Optional 180 × 180 px PNG for iPhone and iPad home screens, stored the same way." }
 files:
   blueprint: blueprint.yaml
   template: site-icons.html.twig

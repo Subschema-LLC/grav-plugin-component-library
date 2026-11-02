@@ -53,8 +53,8 @@ Scope: `theme`
 | Key | Type | Notes |
 |---|---|---|
 | `site_icon` | file map | Square PNG favicon. Grav file field value: { 'user/assets/site-icons/favicon.png': { name, path, type, size } } |
-| `site_icon_svg` | file map | Optional SVG favicon |
-| `site_icon_touch` | file map | Optional 180 × 180 px PNG for iPhone and iPad home screens |
+| `site_icon_svg` | file map | Optional SVG favicon, stored the same way. |
+| `site_icon_touch` | file map | Optional 180 × 180 px PNG for iPhone and iPad home screens, stored the same way. |
 
 ## Problems this solves
 

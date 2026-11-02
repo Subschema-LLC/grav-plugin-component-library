@@ -2748,13 +2748,11 @@
                     },
                     "site_icon_svg": {
                         "type": "file map",
-                        "description": "Optional SVG favicon",
-                        "stored": "the same way."
+                        "description": "Optional SVG favicon, stored the same way."
                     },
                     "site_icon_touch": {
                         "type": "file map",
-                        "description": "Optional 180 × 180 px PNG for iPhone and iPad home screens",
-                        "stored": "the same way."
+                        "description": "Optional 180 × 180 px PNG for iPhone and iPad home screens, stored the same way."
                     }
                 }
             },
